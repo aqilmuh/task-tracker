@@ -1,19 +1,33 @@
+"""
+Task tracker app that allows users to manage their tasks. Users can add, update, delete, and view tasks with deadlines. The tasks are stored in a JSON file for persistence.
+"""
+
 import json
+from json import JSONDecodeError
 import datetime
 
-with open("tasks.json", "r") as f:
-    tasks = json.load(f)
+filename = "tasks.json"
+
+try:
+    with open(filename, "r") as f:
+        tasks = json.load(f)
+except (FileNotFoundError, JSONDecodeError):
+    tasks = {"tasks": []}
 
 print("Task Tracker App")
 
 def display_tasks():
-    print("\nTasks:")
-    for task in tasks["tasks"]:
-        print(f"""{task['id']}. {task['title']}
-        Status: {task['status']}
-        Deadline: {task['deadline']}
-        (Due in {(datetime.datetime.strptime(task['deadline'], '%Y-%m-%d') - datetime.datetime.now()).days} days)
-        """)
+    if not tasks["tasks"]:
+        print(f"\nNo tasks available.")
+        return
+    else:
+        print("\nTasks:")
+        for task in tasks["tasks"]:
+            print(f"""\n{task['id']}. {task['title']}
+Status: {task['status']}
+Deadline: {task['deadline']}""")
+            if not task['status'] == 'completed':
+                print(f"Due in {(datetime.datetime.strptime(task['deadline'], '%Y-%m-%d') - datetime.datetime.now()).days} days" if datetime.datetime.strptime(task['deadline'], '%Y-%m-%d') > datetime.datetime.now() else "Overdue!")
         
 
 def add_task():
@@ -45,7 +59,7 @@ def update_task():
 
 def delete_task():
         try:
-            task_id = int(input("Enter task ID to delete: "))
+            task_id = int(input("Enter a task ID to delete: "))
         except ValueError:
             print("Invalid ID. Please enter a number.")
             return
